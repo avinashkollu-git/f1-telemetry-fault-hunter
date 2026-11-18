@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+      # Synthetic data only: the real-telemetry download needs network access to a third-party
+      # API, so CI skips it (real_checks.py reports "skipped").
+      - run: make -j1 venv
+      - run: make -j1 synth build
+      - run: make -j1 test
+      - run: make -j1 analyze COOLDOWN=0
+      - run: make -j1 report
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: |
+            results/*.json
+            results/*.csv
+            reports/

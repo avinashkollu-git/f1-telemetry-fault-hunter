@@ -11,7 +11,7 @@ SEED     ?= 42
 SYNTH   := data/synth
 DECODED := results/decoded
 
-.PHONY: all venv data synth real build test analyze report clean cooldown
+.PHONY: all venv data synth real build test analyze report seeds clean cooldown
 
 all: data build test analyze report
 
@@ -56,9 +56,21 @@ analyze: $(DECODED)/decoded.csv
 report: | venv
 	$(RUN) $(PY) scripts/report.py --results results --out reports
 
+# Re-run generator + decoder + analysis on other seeds, to check the headline numbers aren't luck.
+SEEDS ?= 1 2
+seeds: build/can_decode | venv
+	@for s in $(SEEDS); do \
+	  $(MAKE) --no-print-directory cooldown; \
+	  $(RUN) $(PY) scripts/gen_can.py --seed $$s --out data/seed$$s > /dev/null && \
+	  mkdir -p results/seed$$s/decoded && \
+	  $(RUN) ./build/can_decode data/seed$$s/can_log.txt config/signals.csv results/seed$$s/decoded > /dev/null && \
+	  echo "== seed $$s" && $(RUN) $(PY) scripts/analyze.py --synth data/seed$$s --decoded results/seed$$s/decoded \
+	    --out results/seed$$s | sed -n '1,13p;/injected rule/p;/  found:/p' || exit 1; \
+	done
+
 cooldown:
 	@if [ "$(COOLDOWN)" != "0" ]; then echo "cooling down $(COOLDOWN)s"; sleep $(COOLDOWN); fi
 
 # Keeps data/cache (FastF1 downloads) so a rebuild does not hit the network again.
 clean:
-	rm -rf build results $(SYNTH) data/real
+	rm -rf build results $(SYNTH) data/real data/seed*

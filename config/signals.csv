@@ -1,0 +1,13 @@
+msg_id,msg_name,period_ms,dlc,signal,start_byte,num_bytes,scale,offset,min,max,max_rate,noisy
+0x0C0,ENGINE,10,4,rpm,0,2,1,0,0,15000,400000,1
+0x0C0,ENGINE,10,4,throttle,2,1,0.5,0,0,100,,0
+0x0C0,ENGINE,10,4,water_temp,3,1,1,-40,40,130,,0
+0x0D0,BRAKE,10,4,brake_front,0,2,0.1,0,0,200,,1
+0x0D0,BRAKE,10,4,brake_rear,2,2,0.1,0,0,200,,1
+0x0E0,GEARBOX,20,3,gear,0,1,1,0,0,8,,0
+0x0E0,GEARBOX,20,3,speed,1,2,0.1,0,0,380,500,1
+0x1A0,BATTERY,100,2,soc,0,1,0.5,0,0,100,,0
+0x1A0,BATTERY,100,2,batt_temp,1,1,1,-40,0,80,,0
+0x200,GPS,100,2,lap_distance,0,2,1,0,0,6000,,0
+0x3F0,RADIO_HB,50,2,hb_counter,0,1,1,0,0,255,,0
+0x3F0,RADIO_HB,50,2,link_quality,1,1,1,0,0,100,,0

@@ -64,15 +64,18 @@ def out_of_range(decoded, sigs, merge_gap=0.1):
 
 
 def rate_of_change(decoded, sigs, merge_gap=0.1):
-    """|dvalue/dt| above what the physics allows (max_rate in the signal table)."""
+    """|dvalue/dt| above what the physics allows (max_rate in the signal table).
+    dt is floored at the nominal period: timestamps are bus arrival times, and a frame delayed by
+    jitter followed by an on-time one would otherwise look like a huge rate over a tiny dt."""
     rows = []
     for sig in (s for s in sigs if s["max_rate"]):
         t, _, val, cid = series(decoded, sig["signal"])
-        rate = np.abs(np.diff(val) / np.diff(t))
+        rate = np.abs(np.diff(val) / np.maximum(np.diff(t), sig["period_ms"] / 1000))
         hit = np.flatnonzero(rate > sig["max_rate"]) + 1
         for a, b, n in merge_times(t[hit], merge_gap):
+            in_event = rate[hit - 1][(t[hit] >= a) & (t[hit] <= b)]
             rows.append(["RATE_SPIKE", cid, sig["signal"], a, b, n,
-                         f"max {rate[hit - 1].max():.0f}/s > {sig['max_rate']:g}/s"])
+                         f"max {in_event.max():.0f}/s > {sig['max_rate']:g}/s"])
     return _events(rows)
 
 

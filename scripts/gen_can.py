@@ -226,8 +226,8 @@ def main():
             in_emi = inside(t, emi_w)
             if not f["protected"][k] and rng.random() < (0.15 if in_emi else 0.0003):
                 bad = bytearray(data)
-                for _ in range(int(rng.integers(1, 4)) if in_emi else 1):
-                    bit = int(rng.integers(0, 8 * dlc))
+                # Distinct bits: flipping the same bit twice cancels out and leaves a valid frame.
+                for bit in rng.choice(8 * dlc, size=int(rng.integers(1, 4)) if in_emi else 1, replace=False):
                     bad[bit // 8] ^= 0x80 >> (bit % 8)
                 # Corrupted frame on the wire (CRC was computed by the sender over the good data),
                 # receivers answer with an error frame, sender retransmits.
